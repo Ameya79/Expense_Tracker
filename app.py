@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, send_file
 import pandas as pd
+import os
 
 
 app  = Flask(__name__) #creates an instance
@@ -45,6 +46,6 @@ def clear_expenses():
     return "<h3>All expenses cleared.</h3><a href='/add'>← Back</a>" #redirecting to add
 
     
-
-if __name__ == "__main__": #runs the server
-    app.run(debug=True)
+if __name__ == "__main__": #initiates server
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=port)
