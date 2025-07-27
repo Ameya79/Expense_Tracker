@@ -38,7 +38,7 @@ Built using only **HTML** — no CSS, no JavaScript. Simple and functional.
 
 Install dependencies using:
 
-```bash
+```
 pip install flask pandas
 ```
 
@@ -46,7 +46,7 @@ pip install flask pandas
 
 ## ▶️ How to Run
 
-```bash
+```
 python app.py
 ```
 
@@ -71,7 +71,7 @@ http://localhost:5000/add
 
 ## 🧼 Sample `expenses.csv`
 
-```csv
+```
 date,amount,category,note
 2025-07-27,250,Groceries,Bought veggies
 2025-07-27,500,Transport,Cab fare
@@ -90,4 +90,11 @@ date,amount,category,note
 ## 📤 Deploy
 
 You can deploy this app for free using platforms like **Render** or **Replit**.
+
+--- 
+
+Author: Ameya Kulkarni
+💻 [GitHub](https://github.com/Ameya79)
+📫 [Connect with me on LinkedIn](https://www.linkedin.com/in/ameya-kulkarni-a31b74246)
+🎯 [View my Codolio](https://codolio.com/profile/Ameya%20Kulkarni)
 
