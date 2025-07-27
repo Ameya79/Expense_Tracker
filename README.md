@@ -1,4 +1,4 @@
-###💸 Flask & Pandas Expense Tracker
+# 💸 Flask & Pandas Expense Tracker
 
 A simple web-based Expense Tracker built using **Flask** and **Pandas**, with a plain HTML frontend. It allows you to add, view, download, and clear expense records saved in a CSV file.
 
