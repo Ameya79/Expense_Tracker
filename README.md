@@ -1,101 +1,87 @@
 # 💸 Flask & Pandas Expense Tracker
 
-A simple web-based Expense Tracker built using **Flask** and **Pandas**, with a plain HTML frontend. It allows you to add, view, download, and clear expense records saved in a CSV file.
+[![Python](https://img.shields.io/badge/python-3.7%2B-blue)]()
+[![Flask](https://img.shields.io/badge/flask-2.x-lightgrey)]()
+[![Pandas](https://img.shields.io/badge/pandas-2.x-green)]()
+[![License](https://img.shields.io/badge/license-MIT-orange)]()
+
+A **simple web-based Expense Tracker** built with **Flask** and **Pandas** — perfect for beginners learning how to work with CSV files in Python.  
+No CSS. No JavaScript. Just clean, functional HTML.
 
 ---
 
 ## 🚀 Features
-
-* ➕ **Add Expense**: Fill out a form to log date, amount, category, and notes.
-* 👀 **View Expenses**: Displays all your recorded expenses in a clean HTML table.
-* 📥 **Download CSV**: Exports all your expenses as a downloadable `.csv` file.
-* 🗑️ **Clear All**: Clears all entries and resets the CSV with just the column headers.
-
----
-
-## 🖼️ Frontend
-
-Built using only **HTML** — no CSS, no JavaScript. Simple and functional.
+- ➕ **Add Expense**: Log date, amount, category, and notes.
+- 👀 **View Expenses**: See all your records in a neat table.
+- 📥 **Download CSV**: Export all expenses in `.csv` format.
+- 🗑️ **Clear All**: Reset the file while keeping headers.
 
 ---
 
-## 📁 Project Structure
-
-```
-├── app.py               # Main Flask application
-├── expenses.csv         # CSV file where data is stored (auto-created)
-└── templates/
-    └── add.html         # HTML form to input new expense
-```
+## 🖼 Preview
+*(Optional: Add screenshot of `/view` here)*
 
 ---
 
-## 🛠️ Requirements
+## 📂 Project Structure
 
-* Python 3.7+
-* Flask
-* Pandas
-
-Install dependencies using:
-
-```
-pip install flask pandas
-```
+├── app.py ├── expenses.csv └── templates/ └── add.html
 
 ---
 
-## ▶️ How to Run
+## 🛠 Requirements
+```bash
+$ pip install flask pandas
 
-```
-python app.py
-```
-
-Then open your browser and go to:
-
-```
-http://localhost:5000/add
-```
 
 ---
 
-## 🌐 Routes Overview
+▶️ How to Run
 
-| Route       | Method   | Description                       |
-| ----------- | -------- | --------------------------------- |
-| `/add`      | GET/POST | Add a new expense                 |
-| `/view`     | GET      | View all recorded expenses        |
-| `/download` | GET      | Download the CSV file of expenses |
-| `/clear`    | GET      | Clear all saved expense records   |
+$ python app.py
+
+Then visit http://localhost:5000/add
+
 
 ---
 
-## 🧼 Sample `expenses.csv`
+🌐 Routes
 
-```
+Route	Method	Description
+
+/add	GET/POST	Add a new expense
+/view	GET	View all recorded expenses
+/download	GET	Download the CSV file of expenses
+/clear	GET	Clear all saved expense records
+
+
+
+---
+
+🧼 Sample CSV
+
 date,amount,category,note
 2025-07-27,250,Groceries,Bought veggies
 2025-07-27,500,Transport,Cab fare
-```
+
 
 ---
 
-## 🧠 Notes
+📤 Deploy
 
-* Expenses are saved in a local `expenses.csv` file.
-* The file is auto-created on the first entry.
-* Only the `/add` route uses an HTML template — others return HTML via Flask.
+Render: Push to GitHub → Create new web service → Set python app.py as start command.
+
+Replit: Import the repo → Click "Run".
+
+
 
 ---
 
-## 📤 Deploy
+👤 Author
 
-You can deploy this app for free using platforms like **Render** or **Replit**.
+Ameya Kulkarni
+💻 GitHub | 📫 LinkedIn | 🎯 Codolio
 
---- 
+⭐ If you found this useful, consider starring the repo!
 
-Author: Ameya Kulkarni
-💻 [GitHub](https://github.com/Ameya79)
-📫 [Connect with me on LinkedIn](https://www.linkedin.com/in/ameya-kulkarni-a31b74246)
-🎯 [View my Codolio](https://codolio.com/profile/Ameya%20Kulkarni)
-
-## Drop a ⭐ if you found this useful!
+---
