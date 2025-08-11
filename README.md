@@ -18,11 +18,6 @@ No CSS. No JavaScript. Just clean, functional HTML.
 
 ---
 
-## 🖼 Preview
-*(Optional: Add screenshot of `/view` here)*
-
----
-
 ## 📂 Project Structure
 
 ├── app.py ├── expenses.csv └── templates/ └── add.html
