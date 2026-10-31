@@ -114,11 +114,10 @@
                         ${{ "%.2f"|format(exp.amount) }}
                     </td>
                     <td class="text-center pe-3">
-                        <form action="{{ url_for('delete_expense', index=exp.id) }}" method="POST" onsubmit="return confirm('Delete this expense of ${{ exp.amount }}?');" class="d-inline">
-                            <button type="submit" class="btn btn-outline-danger btn-sm border-0" title="Delete Expense">
-                                <i class="bi bi-trash3"></i>
-                            </button>
-                        </form>
+                        <button type="button" class="btn btn-outline-danger btn-sm border-0" title="Delete Expense" 
+                                onclick="openDeleteModal('{{ exp.id }}', '{{ exp.category }}', '{{ "%.2f"|format(exp.amount) }}')">
+                            <i class="bi bi-trash3"></i>
+                        </button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -138,10 +137,49 @@
         {% endif %}
     </div>
 </div>
+
+<!-- Single Item Delete Modal -->
+<div class="modal fade" id="deleteItemModal" tabindex="-1" aria-labelledby="deleteItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title d-flex align-items-center gap-2" id="deleteItemModalLabel">
+                    <i class="bi bi-trash3-fill"></i> Delete Expense
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="fs-5 mb-2">Delete this expense record?</p>
+                <div class="badge bg-light text-dark border p-2 fs-6 mb-2" id="deleteModalDetails">
+                    Category: Amount
+                </div>
+                <p class="text-muted small mb-0">This expense will be permanently removed from your log.</p>
+            </div>
+            <div class="modal-footer bg-light justify-content-center">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteItemForm" method="POST" action="">
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="bi bi-trash3-fill me-1"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
+    function openDeleteModal(id, category, amount) {
+        const modal = new bootstrap.Modal(document.getElementById('deleteItemModal'));
+        const form = document.getElementById('deleteItemForm');
+        const details = document.getElementById('deleteModalDetails');
+        
+        form.action = `/delete/${id}`;
+        details.innerHTML = `<strong>${category}</strong> &bull; $${amount}`;
+        modal.show();
+    }
+
     function filterExpenses() {
         const query = document.getElementById("tableSearch").value.toLowerCase();
         const selectedCategory = document.getElementById("categoryFilter").value.toLowerCase();
