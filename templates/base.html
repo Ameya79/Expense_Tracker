@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Expense Tracker{% endblock %}</title>
+    <!-- Google Fonts Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+    <style>
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .navbar-brand {
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .stat-card {
+            border: none;
+            border-radius: 14px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+        }
+        .card-custom {
+            border: 1px solid #e2e8f0;
+            border-radius: 14px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+            background: #ffffff;
+        }
+        .badge-category {
+            font-weight: 500;
+            font-size: 0.8rem;
+            padding: 0.35rem 0.65rem;
+            border-radius: 20px;
+        }
+        footer {
+            margin-top: auto;
+            border-top: 1px solid #e2e8f0;
+            background: #ffffff;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top shadow-sm py-3">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('index') }}">
+                <i class="bi bi-wallet2 fs-4"></i>
+                <span>ExpenseTracker</span>
+            </a>
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu" aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navMenu">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-3">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/' %}active fw-semibold{% endif %}" href="{{ url_for('index') }}">
+                            <i class="bi bi-grid-1x2-fill me-1"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/view' %}active fw-semibold{% endif %}" href="{{ url_for('view') }}">
+                            <i class="bi bi-table me-1"></i> All Expenses
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/add' %}active fw-semibold{% endif %}" href="{{ url_for('expense_page') }}">
+                            <i class="bi bi-plus-circle-fill me-1"></i> Add Expense
+                        </a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="{{ url_for('csv_download') }}" class="btn btn-light btn-sm px-3 shadow-sm d-flex align-items-center gap-1">
+                        <i class="bi bi-download"></i> Export CSV
+                    </a>
+                    <button type="button" class="btn btn-outline-light btn-sm px-3 d-flex align-items-center gap-1" data-bs-toggle="modal" data-bs-target="#clearConfirmModal">
+                        <i class="bi bi-trash3"></i> Clear Records
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container py-4 flex-grow-1">
+        <!-- Flash Alerts -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category if category != 'error' else 'danger' }} alert-dismissible fade show shadow-sm d-flex align-items-center gap-2 mb-4" role="alert">
+                        {% if category == 'success' %}
+                            <i class="bi bi-check-circle-fill fs-5"></i>
+                        {% elif category == 'danger' or category == 'error' %}
+                            <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+                        {% else %}
+                            <i class="bi bi-info-circle-fill fs-5"></i>
+                        {% endif %}
+                        <div>{{ message }}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Clear Confirmation Modal -->
+    <div class="modal fade" id="clearConfirmModal" tabindex="-1" aria-labelledby="clearConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title d-flex align-items-center gap-2" id="clearConfirmModalLabel">
+                        <i class="bi bi-exclamation-triangle-fill"></i> Reset Expense Records
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4 text-center">
+                    <p class="fs-5 mb-2">Are you sure you want to clear <strong>all</strong> expenses?</p>
+                    <p class="text-muted small">This action cannot be undone. All expense entries in <code>expenses.csv</code> will be permanently removed.</p>
+                </div>
+                <div class="modal-footer bg-light justify-content-center">
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                    <form action="{{ url_for('clear_expenses') }}" method="POST">
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="bi bi-trash3-fill me-1"></i> Yes, Clear All
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="py-3 text-center text-muted small">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center">
+            <span>&copy; ExpenseTracker &bull; Standardized Python + Bootstrap 5 Platform</span>
+            <span class="d-flex align-items-center gap-2">
+                <span class="badge bg-success-subtle text-success border border-success-subtle">
+                    <i class="bi bi-hdd-fill me-1"></i> CSV Storage
+                </span>
+                <a href="{{ url_for('csv_download') }}" class="text-decoration-none text-muted">
+                    <i class="bi bi-file-earmark-spreadsheet me-1"></i> Download
+                </a>
+            </span>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
