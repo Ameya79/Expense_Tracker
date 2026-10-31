@@ -68,11 +68,11 @@ def delete_expense(index: int):
     return redirect(url_for("view"))
 
 
-@app.route("/clear")
+@app.route("/clear", methods=["GET", "POST"])
 def clear_expenses():
-    """Clear all expenses."""
+    """Clear all expenses safely while retaining headers."""
     clear_all_expenses()
-    flash("All expenses have been cleared.", "info")
+    flash("All expenses have been reset successfully.", "info")
     return redirect(url_for("view"))
 
 
