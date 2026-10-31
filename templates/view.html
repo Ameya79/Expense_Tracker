@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}All Expenses - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">Expense Log</h2>
+        <p class="text-muted mb-0">Track, filter, and manage all your historical spending</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{{ url_for('expense_page') }}" class="btn btn-primary d-flex align-items-center gap-2 shadow-sm">
+            <i class="bi bi-plus-lg"></i> Add Expense
+        </a>
+        <a href="{{ url_for('csv_download') }}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+            <i class="bi bi-download"></i> Export CSV
+        </a>
+    </div>
+</div>
+
+<!-- Quick Stat Mini-Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 bg-white">
+            <div class="text-muted small fw-medium">Total Spent</div>
+            <div class="fs-4 fw-bold text-primary">${{ "%.2f"|format(stats.total_amount) }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 bg-white">
+            <div class="text-muted small fw-medium">Total Records</div>
+            <div class="fs-4 fw-bold text-dark">{{ stats.total_count }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 bg-white">
+            <div class="text-muted small fw-medium">Top Category</div>
+            <div class="fs-4 fw-bold text-truncate text-success">{{ stats.top_category }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 bg-white">
+            <div class="text-muted small fw-medium">Average Expense</div>
+            <div class="fs-4 fw-bold text-secondary">${{ "%.2f"|format(stats.average_amount) }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Expenses Table Card -->
+<div class="card card-custom shadow-sm mb-4">
+    <!-- Filter Toolbar -->
+    <div class="card-header bg-white border-bottom p-3">
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-light border-end-0">
+                        <i class="bi bi-search text-muted"></i>
+                    </span>
+                    <input type="text" id="tableSearch" class="form-control border-start-0 ps-0" placeholder="Search by note, category, or date..." onkeyup="filterExpenses()">
+                </div>
+            </div>
+            <div class="col-12 col-md-4">
+                <select id="categoryFilter" class="form-select" onchange="filterExpenses()">
+                    <option value="">All Categories</option>
+                    {% set unique_categories = [] %}
+                    {% for exp in expenses %}
+                        {% if exp.category not in unique_categories %}
+                            {% set _ = unique_categories.append(exp.category) %}
+                            <option value="{{ exp.category }}">{{ exp.category }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-3 text-md-end">
+                <button type="button" class="btn btn-outline-secondary btn-sm w-100 w-md-auto" onclick="resetFilters()">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+        {% if expenses and expenses|length > 0 %}
+        <table class="table table-hover align-middle mb-0" id="expensesTable">
+            <thead class="table-light text-muted small text-uppercase">
+                <tr>
+                    <th class="ps-3" style="width: 140px;">Date</th>
+                    <th style="width: 180px;">Category</th>
+                    <th>Description / Note</th>
+                    <th class="text-end" style="width: 140px;">Amount</th>
+                    <th class="text-center pe-3" style="width: 90px;">Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exp in expenses|reverse %}
+                <tr class="expense-row" data-category="{{ exp.category }}" data-note="{{ exp.note }}" data-date="{{ exp.date }}">
+                    <td class="ps-3 fw-medium text-secondary">
+                        <i class="bi bi-calendar3 me-1 text-muted small"></i>{{ exp.date }}
+                    </td>
+                    <td>
+                        <span class="badge badge-category bg-primary-subtle text-primary border border-primary-subtle">
+                            {{ exp.category }}
+                        </span>
+                    </td>
+                    <td class="text-wrap">
+                        {% if exp.note %}
+                            {{ exp.note }}
+                        {% else %}
+                            <span class="text-muted fst-italic">No note</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end fw-bold text-dark">
+                        ${{ "%.2f"|format(exp.amount) }}
+                    </td>
+                    <td class="text-center pe-3">
+                        <button type="button" class="btn btn-outline-danger btn-sm border-0" title="Delete Expense" 
+                                onclick="openDeleteModal('{{ exp.id }}', '{{ exp.category }}', '{{ "%.2f"|format(exp.amount) }}')">
+                            <i class="bi bi-trash3"></i>
+                        </button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="text-center py-5">
+            <div class="mb-3 text-muted">
+                <i class="bi bi-receipt-cutoff fs-1"></i>
+            </div>
+            <h5 class="fw-semibold text-secondary">No expenses recorded yet</h5>
+            <p class="text-muted small mb-3">Add your first transaction to start tracking your finances.</p>
+            <a href="{{ url_for('expense_page') }}" class="btn btn-primary btn-sm px-3 shadow-sm">
+                <i class="bi bi-plus-lg me-1"></i> Add Your First Expense
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Single Item Delete Modal -->
+<div class="modal fade" id="deleteItemModal" tabindex="-1" aria-labelledby="deleteItemModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title d-flex align-items-center gap-2" id="deleteItemModalLabel">
+                    <i class="bi bi-trash3-fill"></i> Delete Expense
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <p class="fs-5 mb-2">Delete this expense record?</p>
+                <div class="badge bg-light text-dark border p-2 fs-6 mb-2" id="deleteModalDetails">
+                    Category: Amount
+                </div>
+                <p class="text-muted small mb-0">This expense will be permanently removed from your log.</p>
+            </div>
+            <div class="modal-footer bg-light justify-content-center">
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                <form id="deleteItemForm" method="POST" action="">
+                    <button type="submit" class="btn btn-danger px-4">
+                        <i class="bi bi-trash3-fill me-1"></i> Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    function openDeleteModal(id, category, amount) {
+        const modal = new bootstrap.Modal(document.getElementById('deleteItemModal'));
+        const form = document.getElementById('deleteItemForm');
+        const details = document.getElementById('deleteModalDetails');
+        
+        form.action = `/delete/${id}`;
+        details.innerHTML = `<strong>${category}</strong> &bull; $${amount}`;
+        modal.show();
+    }
+
+    function filterExpenses() {
+        const query = document.getElementById("tableSearch").value.toLowerCase();
+        const selectedCategory = document.getElementById("categoryFilter").value.toLowerCase();
+        const rows = document.querySelectorAll(".expense-row");
+
+        rows.forEach(row => {
+            const category = (row.getAttribute("data-category") || "").toLowerCase();
+            const note = (row.getAttribute("data-note") || "").toLowerCase();
+            const date = (row.getAttribute("data-date") || "").toLowerCase();
+
+            const matchesQuery = !query || note.includes(query) || category.includes(query) || date.includes(query);
+            const matchesCategory = !selectedCategory || category === selectedCategory;
+
+            if (matchesQuery && matchesCategory) {
+                row.style.display = "";
+            } else {
+                row.style.display = "none";
+            }
+        });
+    }
+
+    function resetFilters() {
+        document.getElementById("tableSearch").value = "";
+        document.getElementById("categoryFilter").value = "";
+        filterExpenses();
+    }
+</script>
+{% endblock %}
