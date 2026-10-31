@@ -1,51 +1,70 @@
-from flask import Flask, render_template, request, send_file
-import pandas as pd
 import os
+from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from expense_store import (
+    init_csv, get_all_expenses, add_expense_record,
+    delete_expense_record, clear_all_expenses, get_expense_stats, CSV_FILE
+)
+from validators import validate_expense_input
+
+app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "expense_tracker_secret_dev_key_2024")
+
+# Initialize CSV on startup
+init_csv()
 
 
-app  = Flask(__name__) #creates an instance
-@app.route("/add", methods = ['GET','POST']) # tells if someone visits /add it returns the add.html page, also tells we will be using get and post
-def expense_page():   #what get does? it fetches the visted url , and post fetches the submit data
-    if request.method == 'POST':
-        date = request.form["date"]
-        amount = request.form["amount"]
-        category = request.form["category"]
-        note = request.form["note"]
-
-        new_expense = pd.DataFrame([{                                         #create a data frame with date , amount etc as a table title and value as a row
-            "date": date,
-            "amount": amount,
-            "category": category,
-            "note": note
-        }])
-
-        new_expense.to_csv("expenses.csv", mode="a", index=False, header=not pd.io.common.file_exists("expenses.csv"))
+@app.route("/")
+def index():
+    """Root route: Redirect to view or render dashboard."""
+    stats = get_expense_stats()
+    expenses = get_all_expenses()
+    return render_template("index.html", stats=stats, expenses=expenses)
 
 
-# pd.DataFrame([{...}])==> Creates a one-row table with the data you got
-# to_csv(..., mode="a")==> Appends this row to the CSV file
-# header=not file_exists(...)==> Adds headers only if file doesn’t exist yet
-    return render_template("add.html") #loads the file
+@app.route("/add", methods=["GET", "POST"])
+def expense_page():
+    """Add a new expense record with validation and Post-Redirect-Get pattern."""
+    if request.method == "POST":
+        date = request.form.get("date", "")
+        amount = request.form.get("amount", "")
+        category = request.form.get("category", "")
+        note = request.form.get("note", "")
+
+        is_valid, error_msg, clean_amount = validate_expense_input(date, amount, category, note)
+        if not is_valid:
+            flash(error_msg, "danger")
+            return render_template("add.html", date=date, amount=amount, category=category, note=note), 400
+
+        add_expense_record(date, clean_amount, category, note)
+        flash("Expense added successfully!", "success")
+        return redirect(url_for("view"))
+
+    return render_template("add.html")
+
+
+@app.route("/view")
+def view():
+    """View all recorded expenses."""
+    expenses = get_all_expenses()
+    stats = get_expense_stats()
+    return render_template("view.html", expenses=expenses, stats=stats)
+
+
 @app.route("/download")
 def csv_download():
-    return send_file("expenses.csv",as_attachment=True)
-    
-@app.route("/view") #to view stuff
-def view():
-    try:
-        df = pd.read_csv("expenses.csv") #pandas reads csv
-        return df.to_html(index=False) #returns the table into html format
-    except FileNotFoundError:
-        return "<h2>No expenses recorded yet.</h2>"
-    
+    """Download the expenses CSV."""
+    init_csv()
+    return send_file(CSV_FILE, as_attachment=True, download_name="expenses.csv")
+
+
 @app.route("/clear")
 def clear_expenses():
-    # Create empty DataFrame with headers
-    df = pd.DataFrame(columns=["date", "amount", "category", "note"]) #resetting it like a list 
-    df.to_csv("expenses.csv", index=False)
-    return "<h3>All expenses cleared.</h3><a href='/add'>← Back</a>" #redirecting to add
+    """Clear all expenses."""
+    clear_all_expenses()
+    flash("All expenses have been cleared.", "info")
+    return redirect(url_for("view"))
 
-    
-if __name__ == "__main__": #initiates server
+
+if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=True, host="0.0.0.0", port=port)
