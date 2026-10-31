@@ -1,28 +1,137 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>New Expense</title>
-</head>
-<body>
-    <!-- The method="POST" means: when submitted, send the form data to Flask -->
-    <!-- date , amount, category , note -->
-    <!-- name attribute stores it like a dic like date: entered date -->
-    <form method="post" action="/add">
-    <label>Date: </label><br>
-    <input type="date" name="date"><br><br>  
-    <label>Amount: </label><br>
-    <input type="text" name="amount"><br><br>  
-    <label>Category: </label><br>
-    <input type="text" name="category"><br><br>  
-    <label>Note: </label><br>
-    <input type="text" name="note"><br><br>  
-    <input type="submit" value="Add Expense"><br>
-    </form><br>
-    <a href="/view">View Expenses</a> <br><br>
-    <a href="/clear">Clear Expenses</a> <br><br>
-    <a href="/download" download>
-    <button type="button">📥 Download CSV</button><br></a>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Add New Expense - Expense Tracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-6">
+        <div class="card card-custom shadow-sm p-4">
+            <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary text-white rounded-3 p-3 d-flex align-items-center justify-content-center" style="width: 48px; height: 48px;">
+                        <i class="bi bi-plus-circle fs-4"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0 fw-bold">New Expense</h4>
+                        <p class="text-muted small mb-0">Record a new transaction to your expense log</p>
+                    </div>
+                </div>
+                <a href="{{ url_for('view') }}" class="btn btn-outline-secondary btn-sm">
+                    <i class="bi bi-arrow-left me-1"></i> Back
+                </a>
+            </div>
+
+            <form method="POST" action="{{ url_for('expense_page') }}" class="needs-validation" novalidate>
+                <!-- Date Field -->
+                <div class="mb-3">
+                    <label for="date" class="form-label fw-semibold">
+                        <i class="bi bi-calendar3 text-primary me-1"></i> Date <span class="text-danger">*</span>
+                    </label>
+                    <input type="date" class="form-control form-control-lg fs-6" id="date" name="date" value="{{ date or '' }}" required>
+                    <div class="invalid-feedback">Please choose a valid date.</div>
+                </div>
+
+                <!-- Amount Field -->
+                <div class="mb-3">
+                    <label for="amount" class="form-label fw-semibold">
+                        <i class="bi bi-currency-dollar text-primary me-1"></i> Amount <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-light text-muted fw-bold">$</span>
+                        <input type="number" step="0.01" min="0.01" class="form-control fs-6" id="amount" name="amount" placeholder="0.00" value="{{ amount or '' }}" required>
+                        <div class="invalid-feedback">Please enter a valid amount greater than zero.</div>
+                    </div>
+                </div>
+
+                <!-- Category Field -->
+                <div class="mb-3">
+                    <label for="category" class="form-label fw-semibold">
+                        <i class="bi bi-tags-fill text-primary me-1"></i> Category <span class="text-danger">*</span>
+                    </label>
+                    <select class="form-select form-select-lg fs-6" id="category" name="category" required onchange="handleCategoryChange(this)">
+                        <option value="" disabled {% if not category %}selected{% endif %}>Select category...</option>
+                        <option value="Food & Dining" {% if category == 'Food & Dining' %}selected{% endif %}>🍔 Food & Dining</option>
+                        <option value="Groceries" {% if category == 'Groceries' %}selected{% endif %}>🛒 Groceries</option>
+                        <option value="Transportation" {% if category == 'Transportation' %}selected{% endif %}>🚗 Transportation</option>
+                        <option value="Utilities" {% if category == 'Utilities' %}selected{% endif %}>💡 Utilities & Bills</option>
+                        <option value="Entertainment" {% if category == 'Entertainment' %}selected{% endif %}>🎬 Entertainment</option>
+                        <option value="Health & Fitness" {% if category == 'Health & Fitness' %}selected{% endif %}>💊 Health & Fitness</option>
+                        <option value="Shopping" {% if category == 'Shopping' %}selected{% endif %}>🛍️ Shopping</option>
+                        <option value="Travel" {% if category == 'Travel' %}selected{% endif %}>✈️ Travel</option>
+                        <option value="Education" {% if category == 'Education' %}selected{% endif %}>📚 Education</option>
+                        <option value="custom" {% if category and category not in ['Food & Dining', 'Groceries', 'Transportation', 'Utilities', 'Entertainment', 'Health & Fitness', 'Shopping', 'Travel', 'Education'] %}selected{% endif %}>✏️ Custom Category...</option>
+                    </select>
+                    <div class="invalid-feedback">Please choose a category.</div>
+                </div>
+
+                <!-- Custom Category Input (hidden by default unless selected) -->
+                <div class="mb-3 {% if not (category and category not in ['Food & Dining', 'Groceries', 'Transportation', 'Utilities', 'Entertainment', 'Health & Fitness', 'Shopping', 'Travel', 'Education']) %}d-none{% endif %}" id="customCategoryDiv">
+                    <label for="custom_category" class="form-label fw-semibold">Custom Category Name</label>
+                    <input type="text" class="form-control" id="custom_category" placeholder="e.g. Pet Care, Subscriptions" value="{{ category if category not in ['Food & Dining', 'Groceries', 'Transportation', 'Utilities', 'Entertainment', 'Health & Fitness', 'Shopping', 'Travel', 'Education'] else '' }}">
+                </div>
+
+                <!-- Note Field -->
+                <div class="mb-4">
+                    <label for="note" class="form-label fw-semibold">
+                        <i class="bi bi-sticky text-primary me-1"></i> Description / Note
+                    </label>
+                    <textarea class="form-control" id="note" name="note" rows="3" placeholder="Optional notes (e.g., Weekly supermarket run, lunch with team)..." maxlength="500">{{ note or '' }}</textarea>
+                    <div class="form-text text-muted">Maximum 500 characters.</div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary btn-lg shadow-sm fw-semibold d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-check2-circle fs-5"></i> Save Expense
+                    </button>
+                    <a href="{{ url_for('view') }}" class="btn btn-light text-muted">
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    // Default date to today if empty
+    document.addEventListener("DOMContentLoaded", function() {
+        const dateInput = document.getElementById("date");
+        if (!dateInput.value) {
+            dateInput.value = new Date().toISOString().split("T")[0];
+        }
+    });
+
+    function handleCategoryChange(select) {
+        const customDiv = document.getElementById("customCategoryDiv");
+        const customInput = document.getElementById("custom_category");
+        if (select.value === "custom") {
+            customDiv.classList.remove("d-none");
+            customInput.setAttribute("name", "category");
+            select.removeAttribute("name");
+            customInput.focus();
+        } else {
+            customDiv.classList.add("d-none");
+            select.setAttribute("name", "category");
+            customInput.removeAttribute("name");
+        }
+    }
+
+    // Bootstrap form validation
+    (() => {
+        'use strict';
+        const forms = document.querySelectorAll('.needs-validation');
+        Array.from(forms).forEach(form => {
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                form.classList.add('was-validated');
+            }, false);
+        });
+    })();
+</script>
+{% endblock %}
