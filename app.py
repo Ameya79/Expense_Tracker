@@ -52,9 +52,16 @@ def view():
 
 @app.route("/download")
 def csv_download():
-    """Download the expenses CSV."""
-    init_csv()
-    return send_file(CSV_FILE, as_attachment=True, download_name="expenses.csv")
+    """Download the expenses CSV safely with fallback."""
+    try:
+        init_csv()
+        if not os.path.exists(CSV_FILE):
+            flash("No CSV file found to export.", "warning")
+            return redirect(url_for("view"))
+        return send_file(CSV_FILE, as_attachment=True, download_name="expenses.csv")
+    except Exception as e:
+        flash(f"Error downloading file: {str(e)}", "danger")
+        return redirect(url_for("view"))
 
 
 @app.route("/delete/<int:index>", methods=["POST"])
