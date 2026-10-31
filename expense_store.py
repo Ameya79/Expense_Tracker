@@ -93,11 +93,19 @@ def get_expense_stats() -> Dict[str, Any]:
     sorted_categories = sorted(category_grouped.items(), key=lambda x: x[1], reverse=True)
     top_category = sorted_categories[0][0] if sorted_categories else "None"
 
+    # Daily spending trends
+    daily_grouped = df.groupby("date")["amount"].sum().to_dict()
+    sorted_daily = sorted(daily_grouped.items(), key=lambda x: str(x[0]))
+    trend_labels = [str(item[0]) for item in sorted_daily][-7:]
+    trend_data = [round(float(item[1]), 2) for item in sorted_daily][-7:]
+
     return {
         "total_amount": round(total_amount, 2),
         "total_count": total_count,
         "average_amount": average_amount,
         "top_category": top_category,
         "category_totals": category_grouped,
+        "trend_labels": trend_labels,
+        "trend_data": trend_data,
         "recent_expenses": get_all_expenses()[-5:][::-1]
     }

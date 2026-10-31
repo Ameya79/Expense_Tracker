@@ -155,18 +155,33 @@
         </div>
     </div>
 </div>
+<!-- Daily Spending Trends Card -->
+{% if stats.trend_labels and stats.trend_labels|length > 0 %}
+<div class="card card-custom p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between border-bottom pb-3 mb-3">
+        <div>
+            <h5 class="fw-bold mb-0">Daily Spending Trend</h5>
+            <small class="text-muted">Recent spending volume by day</small>
+        </div>
+        <span class="badge bg-primary-subtle text-primary border border-primary-subtle">Last 7 Active Days</span>
+    </div>
+    <div style="position: relative; height: 200px;">
+        <canvas id="trendChart"></canvas>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 
 {% block extra_scripts %}
 {% if stats.category_totals and stats.category_totals|length > 0 %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        const ctx = document.getElementById("categoryChart");
-        if (ctx) {
+        const catCtx = document.getElementById("categoryChart");
+        if (catCtx) {
             const labels = {{ stats.category_totals.keys()|list|tojson }};
             const data = {{ stats.category_totals.values()|list|tojson }};
             
-            new Chart(ctx, {
+            new Chart(catCtx, {
                 type: 'doughnut',
                 data: {
                     labels: labels,
@@ -189,14 +204,45 @@
                             labels: {
                                 boxWidth: 12,
                                 padding: 15,
-                                font: {
-                                    family: "'Inter', sans-serif",
-                                    size: 11
-                                }
+                                font: { family: "'Inter', sans-serif", size: 11 }
                             }
                         }
                     },
                     cutout: '65%'
+                }
+            });
+        }
+
+        const trendCtx = document.getElementById("trendChart");
+        if (trendCtx) {
+            const trendLabels = {{ stats.trend_labels|tojson }};
+            const trendData = {{ stats.trend_data|tojson }};
+            
+            new Chart(trendCtx, {
+                type: 'bar',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'Amount ($)',
+                        data: trendData,
+                        backgroundColor: '#3b82f6',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) { return '$' + value; }
+                            }
+                        }
+                    }
                 }
             });
         }
