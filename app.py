@@ -57,6 +57,17 @@ def csv_download():
     return send_file(CSV_FILE, as_attachment=True, download_name="expenses.csv")
 
 
+@app.route("/delete/<int:index>", methods=["POST"])
+def delete_expense(index: int):
+    """Delete a single expense by row index."""
+    success = delete_expense_record(index)
+    if success:
+        flash("Expense entry removed.", "success")
+    else:
+        flash("Could not find expense entry to delete.", "warning")
+    return redirect(url_for("view"))
+
+
 @app.route("/clear")
 def clear_expenses():
     """Clear all expenses."""
